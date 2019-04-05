@@ -21,4 +21,6 @@ from sklearn.datasets import load_digits
 from sklearn.linear_model import Perceptron
 from IPython.core.interactiveshell import InteractiveShell
 from sklearn.svm import SVC
+from sklearn import preprocessing
+from sklearn.pipeline import Pipeline
 #-------------------------------------------------------------------------
