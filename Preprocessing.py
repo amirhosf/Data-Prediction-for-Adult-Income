@@ -38,6 +38,7 @@ def number_encode_features(df):
             result[column].str.lstrip()
             encoders[column] = preprocessing.LabelEncoder()
             result[column] = encoders[column].fit_transform(result[column])
+           
     return result, encoders
 
 #Costum Imputer    
@@ -80,11 +81,11 @@ def import_file (data_name):
     df_test.columns = ["Age", "Workclass", "fnlwgt", "Education", "Education-Num", "Martial Status",
         "Occupation", "Relationship", "Race", "Sex", "Capital Gain", "Capital Loss",
         "Hours per week", "Country", "label"]
-    encoded_train, _ = number_encode_features(df_train)
+    encoded_train,encoders_train = number_encode_features(df_train)
     imputer = ImputeCategorical(['Workclass', 'Country', 'Occupation'])
     encoded_train = imputer.fit_transform(encoded_train)
     
-    encoded_test, _ = number_encode_features(df_test)
+    encoded_test, encoders_test = number_encode_features(df_test)
     imputer = ImputeCategorical(['Workclass', 'Country', 'Occupation'])
     encoded_test = imputer.fit_transform(encoded_test)
    
@@ -92,7 +93,7 @@ def import_file (data_name):
     x_train = encoded_train.drop(['label'], axis = 1)
     y_test = encoded_test['label']
     x_test = encoded_test.drop(['label'], axis = 1)
-    return x_train, y_train, x_test, y_test, encoded_train, encoded_test
+    return x_train, y_train, x_test, y_test, encoded_train, encoded_test, encoders_train, encoders_test
 #scaler = StandardScaler().fit(x_train)
 def distribution_finder (data_name):
     og_data = pd.read_csv(data_name + ".train_SMALLER.csv")
@@ -124,7 +125,7 @@ def corellation_ploter(data):
     sns.heatmap(e.corr(), square=True)
     plt.show()
    
-x_train, y_train, x_test, y_test, encoded_train, encoded_test = import_file("adult")
+#x_train, y_train, x_test, y_test, encoded_train, encoded_test = import_file("adult")
 
 
 #distribution_finder("adult")
