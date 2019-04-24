@@ -54,15 +54,20 @@ cls = linear_model.LogisticRegression()
 cls.fit(x_train, y_train)
 y_pred = cls.predict(x_test)
 cm = metrics.confusion_matrix(y_test, y_pred)
-print(x_train)
 plt.figure(figsize=(10,10))
 plt.subplot(2,1,1)
 sns.heatmap(cm, annot=True, fmt="d", xticklabels=encoders_train["label"].classes_, yticklabels=encoders_train["label"].classes_)
 plt.ylabel("Real value")
 plt.xlabel("Predicted value")
 print ("F1 score: %f" % skl.metrics.f1_score(y_test, y_pred))
+trainerror = 1-accuracy_score ( y_test ,y_pred )
+print ("train error is: ",trainerror )
 coefs = pd.Series(cls.coef_[0], index=encoded_train.drop(['label'],axis = 1).columns)
 coefs.sort_values()
 ax = plt.subplot(2,1,2)
 coefs.plot(kind="bar")
 plt.show()
+#
+#
+
+
