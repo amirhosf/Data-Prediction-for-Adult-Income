@@ -28,6 +28,20 @@ from sklearn.svm import SVC
 from sklearn.base import BaseEstimator, TransformerMixin
 import seaborn as sns
 #--------------------------------------------------
+#MSE_binary classifier using linear regression
+class MSE_binary ( LinearRegression ) :
+    def __init__ ( self ) :
+        print ( " Calling newly created MSE binary function . . . " )
+        super (MSE_binary , self ). __init__ ( )
+    def predict ( self , X) :
+        thr = 0.5 # may vary depending on how you defineb in Xw = b
+        y = self._decision_function(X)
+        y_binary = (np.zeros(y.shape)).astype(int)
+        y_binary [y>thr] = 1
+        return y_binary
+
+
+#----------------------------------------------------------
 # costum encoder
 def number_encode_features(df):
     result = df.copy()
@@ -40,7 +54,7 @@ def number_encode_features(df):
             result[column] = encoders[column].fit_transform(result[column])
            
     return result, encoders
-
+#-----------------------------------------------------
 #Costum Imputer    
 class ImputeCategorical(BaseEstimator, TransformerMixin):
     """
@@ -95,6 +109,7 @@ def import_file (data_name):
     x_test = encoded_test.drop(['label'], axis = 1)
     return x_train, y_train, x_test, y_test, encoded_train, encoded_test, encoders_train, encoders_test
 #scaler = StandardScaler().fit(x_train)
+#----------------------------------------------------------
 def distribution_finder (data_name):
     og_data = pd.read_csv(data_name + ".train_SMALLER.csv")
     og_data.columns = ["Age", "Workclass", "fnlwgt", "Education", "Education-Num", "Martial Status",
@@ -112,6 +127,7 @@ def distribution_finder (data_name):
             og_data[column].hist(axes=ax)
             plt.xticks(rotation="vertical")
         plt.subplots_adjust(hspace=0.7, wspace=0.2)
+#----------------------------------------------------------
 def frequency_finder (data_name,frame_name):
     og_data = pd.read_csv(data_name + ".train_SMALLER.csv")
     og_data.columns = ["Age", "Workclass", "fnlwgt", "Education", "Education-Num", "Martial Status",
@@ -120,16 +136,13 @@ def frequency_finder (data_name,frame_name):
     og_data.head()
     f, axes = plt.subplots(1, 1, figsize=(7, 7), sharex=True)  
     sns.countplot(y = frame_name, hue='label', data=og_data,)
+#----------------------------------------------------------
 def corellation_ploter(data):
     a,b,c,d,e,f = import_file(data)
     sns.heatmap(e.corr(), square=True)
     plt.show()
    
-#x_train, y_train, x_test, y_test, encoded_train, encoded_test = import_file("adult")
 
-
-#distribution_finder("adult")
-#frequency_finder("adult", "Occupation")
 
 
 
