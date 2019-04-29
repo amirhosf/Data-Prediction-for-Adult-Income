@@ -27,6 +27,8 @@ from IPython.core.interactiveshell import InteractiveShell
 from sklearn.svm import SVC
 from sklearn.base import BaseEstimator, TransformerMixin
 import seaborn as sns
+from sklearn.utils import resample
+from imblearn.over_sampling import SMOTE
 #--------------------------------------------------
 #MSE_binary classifier using linear regression
 class MSE_binary ( LinearRegression ) :
@@ -82,13 +84,42 @@ class ImputeCategorical(BaseEstimator, TransformerMixin):
         output[self.columns] = self.imputer.transform(output[self.columns])
         return output
 #--------------------------------------------------
+def resamplingdata_downsample(x_train, y_train):
+    X = pd.concat([x_train, y_train], axis=1)
+
+# separate minority and majority classes
+    not_fraud = X[X.label==0]
+    fraud = X[X.label==1]
+
+# upsample minority
+    fraud_upsampled = resample(fraud,
+                          replace=True, # sample with replacement
+                          n_samples=len(not_fraud), # match number in majority class
+                          random_state=27) # reproducible results
+
+# combine majority and upsampled minority
+    upsampled = pd.concat([not_fraud, fraud_upsampled])
+
+# check new class counts
+    
+    print(upsampled.label.value_counts())
+    xtrain  = X.drop(['label'], axis  = 1)
+    y_train  = X['label']
+    return x_train, y_train
+#--------------------------------------------------
+def resample_smote(X_train,y_train):
+    sm = SMOTE(random_state=27, ratio=1.0)
+    X_train, y_train = sm.fit_sample(X_train, y_train)
+    return X_train, y_train 
+    
+#--------------------------------------------------
 #File Importer/Imputer/Encoder
 #inputs: File Name
 #outputs:         
 def import_file (data_name):
     dataset_name = data_name
     df_train = pd.read_csv(dataset_name + ".train_SMALLER.csv")
-    df_test = pd.read_csv(dataset_name + ".test_SMALLER.csv")
+    df_test = pd.read_csv(dataset_name + "_test.csv")
     df_train.columns = ["Age", "Workclass", "fnlwgt", "Education", "Education-Num", "Martial Status",
         "Occupation", "Relationship", "Race", "Sex", "Capital Gain", "Capital Loss",
         "Hours per week", "Country", "label"]
@@ -115,18 +146,24 @@ def distribution_finder (data_name):
     og_data.columns = ["Age", "Workclass", "fnlwgt", "Education", "Education-Num", "Martial Status",
         "Occupation", "Relationship", "Race", "Sex", "Capital Gain", "Capital Loss",
         "Hours per week", "Country", "label"]
+    encoded_train,encoders_train = number_encode_features(og_data)
+    imputer = ImputeCategorical(['Workclass', 'Country', 'Occupation'])
+    encoded_train = imputer.fit_transform(encoded_train)
+    print (encoded_train)
+    
     fig = plt.figure(figsize=(20,15))
     cols = 5
-    rows = math.ceil(float(og_data.shape[1]) / cols)
-    for i, column in enumerate(og_data.columns):
+    rows = math.ceil(float(encoded_train.shape[1]) / cols)
+    for i, column in enumerate(encoded_train.columns):
         ax = fig.add_subplot(rows, cols, i + 1)
         ax.set_title(column)
-        if  og_data.dtypes[column] == np.object:
-            og_data[column].value_counts().plot(kind="bar", axes=ax)
+        if  encoded_train.dtypes[column] == np.object:
+            encoded_train[column].value_counts().plot(kind="bar", axes=ax)
         else:
-            og_data[column].hist(axes=ax)
+            encoded_train[column].hist(axes=ax)
             plt.xticks(rotation="vertical")
         plt.subplots_adjust(hspace=0.7, wspace=0.2)
+        
 #----------------------------------------------------------
 def frequency_finder (data_name,frame_name):
     og_data = pd.read_csv(data_name + ".train_SMALLER.csv")
@@ -141,22 +178,9 @@ def corellation_ploter(data):
     a,b,c,d,e,f = import_file(data)
     sns.heatmap(e.corr(), square=True)
     plt.show()
-   
+#-----------------------------------------------------------
 
 
 
 
 
-'''
-#this is the pipeliner
-# we need to encode our target data as well.
-yencode = LabelEncoder().fit(dataset.label)
-# construct the pipeline
-census = Pipeline([
-        ('encoder',  EncodeCategorical(dataset.categorical_features.keys())),
-        ('imputer', ImputeCategorical(['workclass', 'native-country', 'occupation'])),
-        ('classifier', LogisticRegression())
-    ])
-# fit the pipeline
-census.fit(dataset.data, yencode.transform(dataset.label))
-'''
