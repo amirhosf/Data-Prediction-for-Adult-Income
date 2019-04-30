@@ -179,7 +179,12 @@ def corellation_ploter(data):
     sns.heatmap(e.corr(), square=True)
     plt.show()
 #-----------------------------------------------------------
-
+def per_rec_acc(tn, fp, fn, tp):
+    recall = tp/(tp+fp)
+    persicion = tp/(tp+fn)
+    total = tn+fp+fn+tp
+    acc = (tp+tn)/total
+    return recall,persicion,acc
 
 
 
